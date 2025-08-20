@@ -7,6 +7,7 @@ import fitnesse.html.template.PageTitle;
 import fitnesse.http.Request;
 import fitnesse.http.Response;
 import fitnesse.http.SimpleResponse;
+import fitnesse.http.security.ContentSecurityPolicyUtil;
 import fitnesse.responders.NotFoundResponder;
 import fitnesse.wiki.MockingPageCrawler;
 import fitnesse.wiki.PageData;
@@ -44,6 +45,10 @@ public class AccountResponder implements Responder {
     pageData = page.getData();
     makeContent(context, request);
     response.setMaxAge(0);
+    
+    // Add Content Security Policy headers to prevent XSS in account pages
+    ContentSecurityPolicyUtil.addCSPHeadersIfHtml(response);
+    
     return response;
   }
 

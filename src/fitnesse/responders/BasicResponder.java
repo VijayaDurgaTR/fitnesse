@@ -12,6 +12,7 @@ import fitnesse.html.template.HtmlPage;
 import fitnesse.http.Request;
 import fitnesse.http.Response;
 import fitnesse.http.SimpleResponse;
+import fitnesse.http.security.ContentSecurityPolicyUtil;
 import fitnesse.wiki.PathParser;
 import fitnesse.wiki.WikiPage;
 import fitnesse.wiki.WikiPagePath;
@@ -62,6 +63,10 @@ public class BasicResponder implements SecureResponder {
     SimpleResponse response = new SimpleResponse();
     response.setContentType(getContentType());
     response.setContent(content);
+    
+    // Add Content Security Policy headers for HTML responses to prevent XSS attacks
+    ContentSecurityPolicyUtil.addCSPHeadersIfHtml(response);
+    
     return response;
   }
 

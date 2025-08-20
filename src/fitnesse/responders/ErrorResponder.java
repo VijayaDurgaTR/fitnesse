@@ -7,6 +7,7 @@ import fitnesse.Responder;
 import fitnesse.http.Request;
 import fitnesse.http.Response;
 import fitnesse.http.SimpleResponse;
+import fitnesse.http.security.ContentSecurityPolicyUtil;
 import fitnesse.html.template.HtmlPage;
 
 public class ErrorResponder implements Responder {
@@ -40,6 +41,9 @@ public class ErrorResponder implements Responder {
     if (message != null)
       html.put("message", message);
     response.setContent(html.html(request));
+
+    // Add Content Security Policy headers to prevent XSS in error pages
+    ContentSecurityPolicyUtil.addCSPHeadersIfHtml(response);
 
     return response;
   }

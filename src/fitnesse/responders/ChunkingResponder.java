@@ -8,6 +8,7 @@ import fitnesse.http.ChunkedDataProvider;
 import fitnesse.http.ChunkedResponse;
 import fitnesse.http.Request;
 import fitnesse.http.Response;
+import fitnesse.http.security.ContentSecurityPolicyUtil;
 import fitnesse.util.Clock;
 import fitnesse.wiki.PageCrawler;
 import fitnesse.wiki.PathParser;
@@ -37,6 +38,9 @@ public abstract class ChunkingResponder implements Responder, ChunkedDataProvide
     this.root = context.getRootPage(request.getMap());
     String format = request.getInput("format");
     response = new ChunkedResponse(format, this);
+
+    // Add Content Security Policy headers for HTML responses to prevent XSS
+    ContentSecurityPolicyUtil.addCSPHeadersIfHtml(response);
 
     if (dontChunk || request.hasInput(Request.NOCHUNK))
       response.turnOffChunking();

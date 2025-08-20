@@ -7,6 +7,7 @@ import fitnesse.Responder;
 import fitnesse.http.Request;
 import fitnesse.http.Response;
 import fitnesse.http.SimpleResponse;
+import fitnesse.http.security.ContentSecurityPolicyUtil;
 import fitnesse.html.template.HtmlPage;
 import fitnesse.wiki.PathParser;
 
@@ -21,6 +22,10 @@ public class NotFoundResponder implements Responder {
     resource = request.getResource();
 
     response.setContent(makeHtml(context, request));
+    
+    // Add Content Security Policy headers to prevent XSS in 404 pages
+    ContentSecurityPolicyUtil.addCSPHeadersIfHtml(response);
+    
     return response;
   }
 

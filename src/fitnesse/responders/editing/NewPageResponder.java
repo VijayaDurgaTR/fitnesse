@@ -9,6 +9,7 @@ import fitnesse.authentication.SecureReadOperation;
 import fitnesse.http.Request;
 import fitnesse.http.Response;
 import fitnesse.http.SimpleResponse;
+import fitnesse.http.security.ContentSecurityPolicyUtil;
 import fitnesse.html.template.HtmlPage;
 import fitnesse.html.template.PageTitle;
 import fitnesse.wiki.PageCrawler;
@@ -30,6 +31,10 @@ public class NewPageResponder implements Responder {
 
     SimpleResponse response = new SimpleResponse();
     response.setContent(doMakeHtml(context, request));
+    
+    // Add Content Security Policy headers to prevent XSS in new page forms
+    ContentSecurityPolicyUtil.addCSPHeadersIfHtml(response);
+    
     return response;
   }
 

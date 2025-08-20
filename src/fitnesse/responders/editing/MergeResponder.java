@@ -13,6 +13,7 @@ import fitnesse.html.template.PageTitle;
 import fitnesse.http.Request;
 import fitnesse.http.Response;
 import fitnesse.http.SimpleResponse;
+import fitnesse.http.security.ContentSecurityPolicyUtil;
 import fitnesse.wiki.PageData;
 import fitnesse.wiki.PathParser;
 import fitnesse.wiki.WikiPage;
@@ -38,6 +39,9 @@ public class MergeResponder implements Responder {
     newContent = this.request.getInput(EditResponder.CONTENT_INPUT_NAME);
 
     response.setContent(makePageHtml(context));
+    
+    // Add Content Security Policy headers to prevent XSS in merge pages
+    ContentSecurityPolicyUtil.addCSPHeadersIfHtml(response);
 
     return response;
   }
