@@ -1,0 +1,45 @@
+package fitnesse.html.template;
+
+import fitnesse.html.HtmlUtil;
+import org.apache.velocity.context.InternalContextAdapter;
+import org.apache.velocity.runtime.directive.Directive;
+import org.apache.velocity.runtime.parser.node.Node;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.util.regex.Pattern;
+
+/**
+ * Velocity directive for escaping content in HTML attribute contexts.
+ * This provides proper encoding for HTML attributes by escaping quotes
+ * in addition to standard HTML entities.
+ * 
+ * Usage in Velocity templates: #escapeAttr($value)
+ */
+public class EscapeAttributeDirective extends Directive {
+  private static final Pattern INVALID_CONTROL_CHAR_PATTERN = Pattern.compile("[\\u0000-\\u0008\\u000B-\\u000C\\u000E-\\u001F]");
+
+  @Override
+  public String getName() {
+    return "escapeAttr";
+  }
+
+  @Override
+  public int getType() {
+    return LINE;
+  }
+
+  @Override
+  public boolean render(InternalContextAdapter context, Writer writer, Node node) throws IOException {
+    Object value = node.jjtGetChild(0).value(context);
+    if (value != null) {
+      String text = HtmlUtil.escapeHTMLAttribute(getValueString(value));
+      writer.write(text);
+    }
+    return true;
+  }
+
+  private String getValueString(Object value) {
+    return INVALID_CONTROL_CHAR_PATTERN.matcher(value.toString()).replaceAll("");
+  }
+}

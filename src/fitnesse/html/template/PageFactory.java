@@ -72,6 +72,7 @@ public class PageFactory {
 
     engine.loadDirective(TraverseDirective.class.getName());
     engine.loadDirective(EscapeDirective.class.getName());
+    engine.loadDirective(EscapeAttributeDirective.class.getName());
     return engine;
   }
 }

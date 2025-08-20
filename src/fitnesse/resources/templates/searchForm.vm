@@ -17,7 +17,7 @@
  <input type="hidden" name="isTextSearch"/>
  <fieldset>
   <label for="searchString">Text:</label>
-  <input type="text" size="50" id="searchString" name="searchString" value="#if ($request.hasInput("searchString"))#escape($request.getInput("searchString"))#end" placeholder="Enter search text"/>
+  <input type="text" size="50" id="searchString" name="searchString" value="#if ($request.hasInput("searchString"))#escapeAttr($resultResponder.getSanitizedSearchString())#end" placeholder="Enter search text"/>
  </fieldset>
   <fieldset>
    <label for="searchScope">Scope:</label>
@@ -44,7 +44,7 @@
  </p>
  <fieldset>
   <label for="searchString">Text:</label>
-  <input type="text" size="50" id="searchString" name="searchString" value="#if ($request.hasInput("searchString"))#escape($request.getInput("searchString"))#end" placeholder="Enter search method/scenario"/>
+  <input type="text" size="50" id="searchString" name="searchString" value="#if ($request.hasInput("searchString"))#escapeAttr($resultResponder.getSanitizedSearchString())#end" placeholder="Enter search method/scenario"/>
  </fieldset>
   <fieldset>
    <label for="searchScope">Scope:</label>

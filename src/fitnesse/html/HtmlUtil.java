@@ -14,6 +14,11 @@ public class HtmlUtil {
 
   private static final String[] specialHtmlChars = new String[]{"&", "<", ">"};
   private static final String[] specialHtmlEscapes = new String[]{"&amp;", "&lt;", "&gt;"};
+  
+  // For HTML attribute contexts - must escape quotes to prevent attribute injection
+  private static final String[] htmlAttributeChars = new String[]{"&", "<", ">", "\"", "'"};
+  private static final String[] htmlAttributeEscapes = new String[]{"&amp;", "&lt;", "&gt;", "&quot;", "&#x27;"};
+  
   private static final String[] specialWikiChars = new String[]{"!", "|", "$"};
   private static final String[] specialWikiEscapes = new String[]{"&bang;", "&bar;", "&dollar;"};
 
@@ -56,6 +61,15 @@ public class HtmlUtil {
 
   public static String escapeHTML(String value) {
       return replaceStrings(value, specialHtmlChars, specialHtmlEscapes);
+  }
+
+  /**
+   * Escape HTML for use in HTML attribute contexts.
+   * This escapes quotes in addition to the standard HTML entities
+   * to prevent HTML attribute injection attacks.
+   */
+  public static String escapeHTMLAttribute(String value) {
+      return replaceStrings(value, htmlAttributeChars, htmlAttributeEscapes);
   }
 
   public static String unescapeHTML(String value) {

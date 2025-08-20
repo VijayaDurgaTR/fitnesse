@@ -15,6 +15,7 @@ import org.junit.Test;
 import static util.RegexTestCase.assertDoesntHaveRegexp;
 import static util.RegexTestCase.assertHasRegexp;
 import static util.RegexTestCase.assertSubString;
+import static org.junit.Assert.assertTrue;
 
 public class SearchResponderTest {
   private SearchResponder responder;
@@ -163,11 +164,13 @@ public class SearchResponderTest {
   @Test
   public void testEscapesSearchString() throws Exception {
     String content = getResponseContentUsingSearchString("!+-<&>");
-    assertSubString("<title>Content Search Results for '!+-&lt;&amp;&gt;'</title>", content);
+    // After sanitization, only safe characters (+ and -) remain
+    assertSubString("<title>Content Search Results for '+-'</title>", content);
   }
 
   private String getResponseContentUsingSearchString(String searchString) throws Exception {
     request.addInput("searchString", searchString);
+    request.addInput("searchType", "content"); // Add searchType to trigger search results display
     request.addInput(Request.NOCHUNK, "");
     Response response = responder.makeResponse(context, request);
     MockResponseSender sender = new MockResponseSender();
@@ -226,5 +229,70 @@ public class SearchResponderTest {
     String searchPageContent = getResponseContentUsingSearchString("something");
 
     assertSubString("&lt;script&gt;TEST&lt;/script&gt;", searchPageContent);
+  }
+  
+  @Test
+  public void testSearchStringValidation() throws Exception {
+    // Test that malicious search strings are sanitized
+    String content = getResponseContentUsingSearchString("<script>alert('xss')</script>");
+    // The sanitized string should be empty after removing dangerous content
+    assertSubString("Content Search Results for ''", content);
+    // The specific malicious content should not appear anywhere
+    assertDoesntHaveRegexp("alert\\('xss'\\)", content);
+  }
+  
+  @Test
+  public void testSearchStringXSSPrevention() throws Exception {
+    // Test various XSS attack vectors are completely sanitized
+    String[] xssAttacks = {
+        "<img src=x onerror=alert('XSS')>",
+        "javascript:alert('XSS')",
+        "<svg onload=alert('XSS')>",
+        "';alert('XSS');//",
+        "\"><script>alert('XSS')</script>"
+    };
+    
+    for (String attack : xssAttacks) {
+      String content = getResponseContentUsingSearchString(attack);
+      // The search string should be completely sanitized (empty)
+      assertSubString("Content Search Results for ''", content);
+      // Check that the specific malicious content doesn't appear
+      assertDoesntHaveRegexp("alert\\('XSS'\\)", content);
+      assertDoesntHaveRegexp("javascript:alert", content);
+      assertDoesntHaveRegexp("onerror=alert", content);
+      assertDoesntHaveRegexp("onload=alert", content);
+    }
+  }
+  
+  @Test
+  public void testValidSearchStringsArePreserved() throws Exception {
+    // Test that valid search strings are preserved
+    String validSearch = "test-search_file.txt";
+    String content = getResponseContentUsingSearchString(validSearch);
+    assertSubString("Content Search Results for '" + validSearch + "'", content);
+  }
+  
+  @Test
+  public void testSearchStringLengthLimit() throws Exception {
+    // Test that very long search strings are truncated
+    StringBuilder longSearch = new StringBuilder();
+    for (int i = 0; i < 600; i++) { // Longer than the 500 character limit
+      longSearch.append("a");
+    }
+    
+    String content = getResponseContentUsingSearchString(longSearch.toString());
+    // The title should not contain the full long string
+    String title = extractTitleFromContent(content);
+    assertTrue("Title should be shorter than original input", title.length() < longSearch.length());
+  }
+  
+  private String extractTitleFromContent(String content) {
+    // Extract the title from the HTML content for testing
+    int titleStart = content.indexOf("<title>") + 7;
+    int titleEnd = content.indexOf("</title>");
+    if (titleStart > 6 && titleEnd > titleStart) {
+      return content.substring(titleStart, titleEnd);
+    }
+    return "";
   }
 }

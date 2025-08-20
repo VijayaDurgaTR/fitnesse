@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static util.RegexTestCase.assertSubString;
 
 public class HtmlUtilTest {
@@ -156,5 +157,56 @@ public class HtmlUtilTest {
   public void testMakeSilentLink() {
     HtmlTag tag = JavascriptUtil.makeSilentLink("test?responder", new RawHtml("string with \"quotes\""));
     assertSubString("<a href=\"#\" onclick=\"doSilentRequest('test?responder')\">string with \"quotes\"</a>", tag.html());
+  }
+
+  @Test
+  public void testEscapeHTML() {
+    assertEquals("&amp;", HtmlUtil.escapeHTML("&"));
+    assertEquals("&lt;", HtmlUtil.escapeHTML("<"));
+    assertEquals("&gt;", HtmlUtil.escapeHTML(">"));
+    assertEquals("&amp;&lt;&gt;", HtmlUtil.escapeHTML("&<>"));
+    
+    // Quotes should NOT be escaped in HTML content context
+    assertEquals("\"", HtmlUtil.escapeHTML("\""));
+    assertEquals("'", HtmlUtil.escapeHTML("'"));
+  }
+
+  @Test
+  public void testEscapeHTMLAttribute() {
+    assertEquals("&amp;", HtmlUtil.escapeHTMLAttribute("&"));
+    assertEquals("&lt;", HtmlUtil.escapeHTMLAttribute("<"));
+    assertEquals("&gt;", HtmlUtil.escapeHTMLAttribute(">"));
+    assertEquals("&quot;", HtmlUtil.escapeHTMLAttribute("\""));
+    assertEquals("&#x27;", HtmlUtil.escapeHTMLAttribute("'"));
+    
+    // Complete XSS test case
+    assertEquals("&amp;&lt;&gt;&quot;&#x27;", HtmlUtil.escapeHTMLAttribute("&<>\"'"));
+  }
+
+  @Test
+  public void testHTMLAttributeInjectionPrevention() {
+    // Test cases that could be used for HTML attribute injection
+    String maliciousInput1 = "value\" onload=\"alert('XSS')";
+    String expected1 = "value&quot; onload=&quot;alert(&#x27;XSS&#x27;)";
+    assertEquals(expected1, HtmlUtil.escapeHTMLAttribute(maliciousInput1));
+    
+    String maliciousInput2 = "value' onmouseover='alert(\"XSS\")'";
+    String expected2 = "value&#x27; onmouseover=&#x27;alert(&quot;XSS&quot;)&#x27;";
+    assertEquals(expected2, HtmlUtil.escapeHTMLAttribute(maliciousInput2));
+    
+    String maliciousInput3 = "<script>alert('XSS')</script>";
+    String expected3 = "&lt;script&gt;alert(&#x27;XSS&#x27;)&lt;/script&gt;";
+    assertEquals(expected3, HtmlUtil.escapeHTMLAttribute(maliciousInput3));
+  }
+
+  @Test
+  public void testHTMLAttributeEscapeNullHandling() {
+    assertEquals("", HtmlUtil.escapeHTMLAttribute(""));
+    
+    // Test null handling - should return null like the existing escapeHTML
+    assertNull(HtmlUtil.escapeHTMLAttribute(null));
+    
+    String validText = "Hello World 123";
+    assertEquals(validText, HtmlUtil.escapeHTMLAttribute(validText));
   }
 }

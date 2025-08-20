@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import fitnesse.components.TraversalListener;
 import fitnesse.html.HtmlUtil;
+import fitnesse.util.SearchInputValidator;
 import fitnesse.wiki.WikiPage;
 import fitnesse.wiki.search.MethodWikiPageFinder;
 import fitnesse.wiki.search.PageFinder;
@@ -18,8 +19,13 @@ import static java.util.regex.Pattern.LITERAL;
 public class SearchResponder extends ResultResponder {
 
   private String getSearchString() {
-    String searchString = request.getInput("searchString");
-    return searchString == null ? "" : searchString;
+    String rawSearchString = request.getInput("searchString");
+    if (rawSearchString == null) {
+      return "";
+    }
+    
+    // Validate and sanitize the search string to prevent XSS attacks
+    return SearchInputValidator.validateAndSanitize(rawSearchString);
   }
 
   private String getSearchType() {
@@ -74,6 +80,14 @@ public class SearchResponder extends ResultResponder {
   @Override
   protected boolean shouldRespondWith404() {
     return false;
+  }
+
+  /**
+   * Returns the sanitized search string for use in templates.
+   * This prevents XSS attacks by ensuring the search string is properly sanitized.
+   */
+  public String getSanitizedSearchString() {
+    return getSearchString();
   }
 
 }
