@@ -58,7 +58,14 @@ public class ResponderFactoryTest {
   public void testGetResponderKey() throws Exception {
     checkResponderKey("railroad", "railroad");
     checkResponderKey("responder=railroad", "railroad");
-    checkResponderKey("", "");
+    checkResponderKey("", null);  // Empty query string should return null
+    // Test new enhanced functionality
+    checkResponderKey("test=", "test");  // Empty value should strip the = sign
+    checkResponderKey("suite=", "suite");  // Empty value should strip the = sign
+    checkResponderKey("test=somevalue", "test");  // Should extract responder key before =
+    checkResponderKey("test&other=value", "test");  // Should extract first part before &
+    checkResponderKey("=invalid", null);  // Query starting with = should return null
+    checkResponderKey("   ", null);  // Whitespace-only should return null
   }
 
   private void checkResponderKey(String queryString, String key) {
