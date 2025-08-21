@@ -27,18 +27,48 @@ public class ContentSecurityPolicyUtil {
         "form-action 'self'";                   // Restrict form submissions
     
     /**
+     * Relaxed CSP policy for test execution pages that need inline JavaScript.
+     * Still maintains security by restricting sources to same origin and blocking dangerous elements.
+     */
+    public static final String TEST_EXECUTION_CSP_POLICY = 
+        "default-src 'self'; " +
+        "script-src 'self' 'unsafe-inline'; " +  // Allow inline scripts for test functionality
+        "style-src 'self' 'unsafe-inline'; " +   // Allow inline CSS for styling
+        "img-src 'self' data:; " +               // Allow data URLs for inline images
+        "font-src 'self'; " +
+        "connect-src 'self'; " +
+        "media-src 'self'; " +
+        "object-src 'none'; " +                 // Block all plugins
+        "frame-src 'none'; " +                  // Block frames
+        "base-uri 'self'; " +                   // Restrict base tag
+        "form-action 'self'";                   // Restrict form submissions
+    
+    /**
      * Adds Content Security Policy headers to the HTTP response.
      * This helps prevent XSS attacks by controlling which resources can be loaded.
      * 
      * @param response The HTTP response to add CSP headers to
      */
     public static void addContentSecurityPolicyHeaders(Response response) {
+        addContentSecurityPolicyHeaders(response, false);
+    }
+    
+    /**
+     * Adds Content Security Policy headers to the HTTP response with optional relaxed policy for tests.
+     * 
+     * @param response The HTTP response to add CSP headers to
+     * @param allowInlineScripts Whether to allow inline scripts (for test execution)
+     */
+    public static void addContentSecurityPolicyHeaders(Response response, boolean allowInlineScripts) {
         if (response == null) {
             return;
         }
         
+        // Choose the appropriate CSP policy
+        String cspPolicy = allowInlineScripts ? TEST_EXECUTION_CSP_POLICY : STRICT_CSP_POLICY;
+        
         // Add the main CSP header
-        response.addHeader("Content-Security-Policy", STRICT_CSP_POLICY);
+        response.addHeader("Content-Security-Policy", cspPolicy);
         
         // Add additional security headers that complement CSP
         addComplementarySecurityHeaders(response);

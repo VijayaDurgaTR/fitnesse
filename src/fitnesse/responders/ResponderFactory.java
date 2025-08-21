@@ -144,11 +144,27 @@ public class ResponderFactory {
     else
       fullQuery = request.getQueryString();
 
-    if (fullQuery == null)
+    if (fullQuery == null || fullQuery.trim().isEmpty())
       return null;
 
     int argStart = fullQuery.indexOf('&');
-    return (argStart <= 0) ? fullQuery : fullQuery.substring(0, argStart);
+    String responderKey = (argStart <= 0) ? fullQuery : fullQuery.substring(0, argStart);
+    
+    // Handle case where query string has empty value (e.g., "test=" should become "test")
+    int equalsIndex = responderKey.indexOf('=');
+    if (equalsIndex > 0) {
+      responderKey = responderKey.substring(0, equalsIndex);
+    } else if (equalsIndex == 0) {
+      // If query starts with '=' then it's invalid, return null
+      return null;
+    }
+    
+    // Return null for empty responder keys
+    if (responderKey.trim().isEmpty()) {
+      return null;
+    }
+    
+    return responderKey;
   }
 
   public Responder makeResponder(Request request) throws InstantiationException, IOException {

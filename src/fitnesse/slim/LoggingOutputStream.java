@@ -56,11 +56,10 @@ class LoggingOutputStream extends ByteArrayOutputStream {
       // extra newlines after each message, strip those
       record = record.substring(0, record.length() - 1);
     }
-    // Prefix each new line with: newline + level + DOT + ":"
-    record = record.replace("\n", "\n" + level
-        + SlimPipeSocket.FOLLOWING_LINE_PREFIX);
-    // Prefix first line with: level + SPACE + ":"
-    logger.println(level + SlimPipeSocket.FIRST_LINE_PREFIX + record);
+    // Prefix each new line with: newline + level + FOLLOWING_LINE_PREFIX
+    record = record.replace("\n", "\n" + level + SlimPipeSocket.FOLLOWING_LINE_PREFIX);
+    // Prefix first line with: level + FIRST_LINE_PREFIX and add Unix line ending
+    logger.print(level + SlimPipeSocket.FIRST_LINE_PREFIX + record + "\n");
   }
 
 }

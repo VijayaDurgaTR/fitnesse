@@ -39,8 +39,13 @@ public abstract class ChunkingResponder implements Responder, ChunkedDataProvide
     String format = request.getInput("format");
     response = new ChunkedResponse(format, this);
 
+    // Check if this is a test execution request (needs relaxed CSP for JavaScript)
+    boolean isTestExecution = isTestExecutionRequest(request);
+    
     // Add Content Security Policy headers for HTML responses to prevent XSS
-    ContentSecurityPolicyUtil.addCSPHeadersIfHtml(response);
+    if (ContentSecurityPolicyUtil.shouldAddCSPHeaders(response)) {
+        ContentSecurityPolicyUtil.addContentSecurityPolicyHeaders(response, isTestExecution);
+    }
 
     if (dontChunk || request.hasInput(Request.NOCHUNK))
       response.turnOffChunking();
@@ -101,6 +106,22 @@ public abstract class ChunkingResponder implements Responder, ChunkedDataProvide
 
   public void setRequest(Request request) {
     this.request = request;
+  }
+
+  /**
+   * Checks if this is a test execution request that needs relaxed CSP for JavaScript functionality.
+   * 
+   * @param request The HTTP request to check
+   * @return true if this is a test execution request, false otherwise
+   */
+  private boolean isTestExecutionRequest(Request request) {
+    String queryString = request.getQueryString();
+    return queryString != null && 
+           (queryString.contains("test") || 
+            queryString.contains("suite") || 
+            request.getInput("responder") != null && 
+            (request.getInput("responder").contains("test") || 
+             request.getInput("responder").contains("suite")));
   }
 
   /**
