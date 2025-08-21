@@ -110,18 +110,28 @@ public abstract class ChunkingResponder implements Responder, ChunkedDataProvide
 
   /**
    * Checks if this is a test execution request that needs relaxed CSP for JavaScript functionality.
+   * This includes test execution, search operations, and other interactive features that require JavaScript.
    * 
    * @param request The HTTP request to check
-   * @return true if this is a test execution request, false otherwise
+   * @return true if this is a request that needs relaxed CSP, false otherwise
    */
   private boolean isTestExecutionRequest(Request request) {
     String queryString = request.getQueryString();
-    return queryString != null && 
+    String responder = request.getInput("responder");
+    
+    // Check for test execution requests
+    boolean hasTestInQuery = queryString != null && 
            (queryString.contains("test") || 
-            queryString.contains("suite") || 
-            request.getInput("responder") != null && 
-            (request.getInput("responder").contains("test") || 
-             request.getInput("responder").contains("suite")));
+            queryString.contains("suite"));
+    
+    // Check for responders that need JavaScript functionality
+    boolean needsJavaScript = responder != null && 
+            (responder.contains("test") || 
+             responder.contains("suite") ||
+             responder.contains("search") ||  // Search forms and results need JavaScript
+             responder.equals("searchProperties"));  // Search properties specifically needs JavaScript
+    
+    return hasTestInQuery || needsJavaScript;
   }
 
   /**

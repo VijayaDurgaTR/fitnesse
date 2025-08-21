@@ -29,3 +29,5 @@ FitNesseRoot/updateDoNotCopyOverList
 FitNesseRoot/updateList
 fitMutation/
 /.vs/fitnesse/CopilotIndices/17.14.995.13737
+.vscode/
+passwords.txt
