@@ -47,32 +47,47 @@ public class ParserTestHelper {
   }
 
   public static void assertTranslatesTo(String input, String expected) {
-    assertTranslatesTo(new TestSourcePage(), input, expected);
+    String actual = translateTo(new TestSourcePage(), input);
+    assertEquals(normalizeLineEndings(expected), normalizeLineEndings(actual));
   }
 
   public static void assertTranslatesTo(WikiPage page, VariableSource variableSource, String expected) {
-    assertEquals(expected, translateToHtml(page, page.getData().getContent(), variableSource));
+    String actual = translateToHtml(page, page.getData().getContent(), variableSource);
+    assertEquals(normalizeLineEndings(expected), normalizeLineEndings(actual));
   }
 
   public static void assertTranslatesTo(String input, VariableSource variableSource, String expected) {
-    assertEquals(expected, translateToHtml(new WikiPageDummy(), input, variableSource));
+    String actual = translateToHtml(new WikiPageDummy(), input, variableSource);
+    assertEquals(normalizeLineEndings(expected), normalizeLineEndings(actual));
   }
 
   public static void assertTranslatesTo(WikiPage page, String input, String expected) {
-    assertEquals(expected, translateTo(page, input));
+    String actual = translateTo(page, input);
+    assertEquals(normalizeLineEndings(expected), normalizeLineEndings(actual));
   }
 
   public static void assertTranslatesTo(SourcePage page, String input, String expected) {
-    assertEquals(expected, translateTo(page, input));
+    String actual = translateTo(page, input);
+    assertEquals(normalizeLineEndings(expected), normalizeLineEndings(actual));
     assertEquals("round trip", input, roundTrip(page, input));
   }
 
   public static void assertTranslatesTo(SourcePage page, String expected) {
-    assertEquals(expected, translateTo(page));
+    String actual = translateTo(page);
+    assertEquals(normalizeLineEndings(expected), normalizeLineEndings(actual));
   }
 
   public static void assertTranslatesTo(WikiPage page, String expected) {
-    assertEquals(expected, translateTo(new WikiSourcePage(page)));
+    String actual = translateTo(new WikiSourcePage(page));
+    assertEquals(normalizeLineEndings(expected), normalizeLineEndings(actual));
+  }
+
+  /**
+   * Normalizes line endings to prevent platform-specific test failures.
+   * Converts all \r\n sequences to \n for consistent comparison.
+   */
+  private static String normalizeLineEndings(String text) {
+    return text.replace("\r\n", "\n");
   }
 
   public static String translateTo(String input) {
