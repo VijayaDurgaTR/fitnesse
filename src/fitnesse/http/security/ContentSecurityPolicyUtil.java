@@ -76,6 +76,8 @@ public class ContentSecurityPolicyUtil {
     
     /**
      * Adds additional security headers that work together with CSP for comprehensive protection.
+     * Note: For secure cookie handling, use SecureCookieUtil.setSecureCookie() which automatically
+     * adds HttpOnly, Secure, and SameSite flags to prevent cookie theft attacks.
      * 
      * @param response The HTTP response to add security headers to
      */
@@ -91,6 +93,10 @@ public class ContentSecurityPolicyUtil {
         
         // Only send referrer for same-origin requests
         response.addHeader("Referrer-Policy", "same-origin");
+        
+        // Note: Cookie security is handled by SecureCookieUtil, not here.
+        // Always use SecureCookieUtil.setSecureCookie() for any authentication 
+        // or session cookies to ensure HttpOnly, Secure, and SameSite flags are set.
     }
     
     /**
